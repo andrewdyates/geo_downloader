@@ -14,6 +14,7 @@ import numpy as np
 
 from geo_api import *
 from quantile_normalize import *
+from lab_util import tab_to_npy, masked_npy_to_tab
 
 OUT_FNAMES = {
   'raw_fname': "%s.raw.tab",
@@ -104,8 +105,22 @@ def main(gse_id=None, outdir=None, platform_id=None):
   print "Wrote %d rows of %d columns (+%d headers, includes attr name column)" % \
       (len(attrs), len(g.col_titles)-1, len(global_attrs)+1)
 
+  # Quantile-normalize data
+  # load data
+  print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
+  M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
+  assert np.size(M,0) == len(varlist)
+  
+  print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
+  quantile_norm(M)
+  assert np.size(M,0) == len(varlist)
+  
+  print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
+  fp = open(OUT_FNAMES['normed_fname'], 'w')
+  fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
+  masked_npy_to_tab.npy_to_tab(M, fp, varlist)
+  print "Wrote %s successfully." % (OUT_FNAMES['normed_fname'])
 
-  
-  
+                 
 if __name__ == "__main__":
   main(**dict([s.split('=') for s in sys.argv[1:]]))

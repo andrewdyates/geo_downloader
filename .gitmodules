@@ -4,3 +4,6 @@
 [submodule "geo_api"]
 	path = geo_api
 	url = git@github.com:andrewdyates/geo_api.git
+[submodule "lab_util"]
+	path = lab_util
+	url = git@github.com:andrewdyates/lab_util.git
