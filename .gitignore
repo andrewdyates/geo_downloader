@@ -1,4 +1,8 @@
 *.py[co]
+*~
+#*
+.#*
+.DS*
 
 # Packages
 *.egg
