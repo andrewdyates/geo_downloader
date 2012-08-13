@@ -1,0 +1,6 @@
+[submodule "quantile_normalize"]
+	path = quantile_normalize
+	url = git@github.com:andrewdyates/quantile_normalize.git
+[submodule "geo_api"]
+	path = geo_api
+	url = git@github.com:andrewdyates/geo_api.git
