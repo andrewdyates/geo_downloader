@@ -20,20 +20,20 @@ OUT_FNAMES = {
   'normed_fname': "%s.normed.tab",
   'samples_fname': "%s.samples.tab",
   'probes_fname': "%s.probes.tab",
+  'geolog_fname': "%s.geo_api_log.txt",
 }
 
 def main(gse_id=None, outdir=None, platform_id=None):
   """Save study information to disk."""
   assert gse_id is not None
-    
-  # Configure output and download cache
+
+  # Configure output destination, download cache, and download logging
   if outdir is None:
     outdir = os.getcwd()
     print "Warning: outdir not specified. Set outdir to current working directory %s." % (outdir)
   if "CACHE_DIR" not in os.environ:
     print "Warning: os enviroment variable CACHE_DIR not set. Setting CACHE_DIR to `outdir` %s" % (outdir)
     os.environ["CACHE_DIR"] = outdir
-
   # Generate output file paths.
   for k,v in OUT_FNAMES.items():
     OUT_FNAMES[k] = os.path.join(outdir, v%gse_id)
@@ -79,12 +79,33 @@ def main(gse_id=None, outdir=None, platform_id=None):
     for k, v in gsm.attr.items():
       for x in v:
         attrs.setdefault(k, set()).add(x)
-
+        
+  # Select attributes with at least 2 values. Print others as comments.
+  global_attrs = {}
   for k, v in attrs.items():
-    print k, v
-    
-  #fp = open(OUT_FNAMES['samples_fname'], 'w')
+    if len(v) == 1:
+      global_attrs[k] = v.pop()
+  for k in global_attrs:
+    del attrs[k]
+  print "Selected %d sample attributes and %d global attributes." % (len(attrs), len(global_attrs))
+  
+  fp = open(OUT_FNAMES['samples_fname'], 'w')
+  # Write global attributes as comment headers.
+  for k, v in global_attrs.items():
+    fp.write("##%s=%s\n" % (k, v))
+  # Write data column titles as sample headers.
+  fp.write("#ATTRIBUTE_NAME\t"); fp.write("\t".join(g.col_titles[1:])); fp.write('\n')
+  # Write attribute values in sample order
+  for attr_name in attrs:
+    fp.write("%s\t" % attr_name)
+    fp.write('\t'.join(','.join(g.samples[s].attr[attr_name]) for s in g.col_titles[1:]))
+    fp.write('\n')
+  fp.close()
+  print "Wrote %d rows of %d columns (+%d headers, includes attr name column)" % \
+      (len(attrs), len(g.col_titles)-1, len(global_attrs)+1)
 
+
+  
   
 if __name__ == "__main__":
   main(**dict([s.split('=') for s in sys.argv[1:]]))
