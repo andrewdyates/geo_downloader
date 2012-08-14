@@ -16,6 +16,9 @@ Script Parameters
 * outdir: str of path to output directory. Defaults to current working directory.
 * normalize: [default=True] bool if to perform quantile normalization on data matrix
 
+About
+-----------
+
 GEO Downloader fetches "series matrix" data files from the [NCBI Gene Expression Omnibus (GEO)](http://www.ncbi.nlm.nih.gov/geo/)
 public database as easy to work with plain text files. Matrices are aligned so that rows in
 the probes (GPL platform definition) matrix align with corresponding rows in the data matrix, and
