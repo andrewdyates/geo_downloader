@@ -42,7 +42,7 @@ into CACHE_DIR as a temporary file.
 
 
 ### Table 1: Output Files ###
-
+_saved to `outdir`, full file name is generated using `gse_id` and `platform_id`_
 
 | File Suffix | Matrix  | Type               | Notes |
 | ----------- | ------  | ----               | ----- |
