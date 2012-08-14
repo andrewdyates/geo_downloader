@@ -5,6 +5,12 @@ EXAMPLE USE:
 python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
 python script.py gse_id=GSE7307 outdir=$HOME/Desktop
 
+  'raw_fname': "%s.raw.tab",
+  'normed_fname': "%s.normed.tab",
+  'samples_fname': "%s.samples.tab",
+  'probes_fname': "%s.probes.tab",
+  'npy_normed_fname': "%s.normed.npy",
+
 raw
 normed
 samples
@@ -23,10 +29,10 @@ OUT_FNAMES = {
   'normed_fname': "%s.normed.tab",
   'samples_fname': "%s.samples.tab",
   'probes_fname': "%s.probes.tab",
-  'geolog_fname': "%s.geo_api_log.txt",
+  'npy_normed_fname': "%s.normed.npy",
 }
 
-def main(gse_id=None, outdir=None, platform_id=None):
+def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   """Save study information to disk."""
   assert gse_id is not None
 
@@ -42,7 +48,11 @@ def main(gse_id=None, outdir=None, platform_id=None):
     os.environ["CACHE_DIR"] = outdir
   # Generate output file paths.
   for k,v in OUT_FNAMES.items():
-    OUT_FNAMES[k] = os.path.join(outdir, v%gse_id)
+    if platform_id is not None:
+      name = "%s_%s" % (gse_id, platform_id)
+    else:
+      name = "%s" % (gse_id)
+    OUT_FNAMES[k] = os.path.join(outdir, v%name)
 
   # Fetch study.
   g = GSE(gse_id, platform_id=platform_id)
@@ -116,10 +126,15 @@ def main(gse_id=None, outdir=None, platform_id=None):
   print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
   M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
   assert np.size(M,0) == len(varlist)
-  
-  print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
-  quantile_norm(M)
-  assert np.size(M,0) == len(varlist)
+
+  if normalize:
+    print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
+    quantile_norm(M)
+    assert np.size(M,0) == len(varlist)
+    print "Saving quantile normalized matrix to file as %s." % (OUT_FNAMES['npy_normed_fname'])
+    np.ma.dump(M, OUT_FNAMES['npy_normed_fname'])
+  else:
+    print "Normalization off. Do not normalize matrix or save it in binary format."
   
   print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
   fp = open(OUT_FNAMES['normed_fname'], 'w')
