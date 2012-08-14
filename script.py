@@ -2,19 +2,10 @@
 """Save study to disk as ordered and aligned tab delimited files.
 
 EXAMPLE USE:
-python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
-python script.py gse_id=GSE7307 outdir=$HOME/Desktop
+  python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
+  python script.py gse_id=GSE7307 outdir=$HOME/Desktop
 
-  'raw_fname': "%s.raw.tab",
-  'normed_fname': "%s.normed.tab",
-  'samples_fname': "%s.samples.tab",
-  'probes_fname': "%s.probes.tab",
-  'npy_normed_fname': "%s.normed.npy",
-
-raw
-normed
-samples
-probes
+See README.md for details.
 """
 import os
 import numpy as np

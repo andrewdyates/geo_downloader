@@ -7,6 +7,15 @@ Example Use
 
     python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
 
+Script Parameters
+-----------
+
+* gse_id: [required] str of GEO GSE Study Accession ID (uppercase)
+* platform_id: str of GEO GPL Platform Accession ID;
+    required only when multiple platforms are associated with the same study
+* outdir: str of path to output directory. Defaults to current working directory.
+* normalize: [default=True] bool if to perform quantile normalization on data matrix
+
 GEO Downloader fetches "series matrix" data files from the [NCBI Gene Expression Omnibus (GEO)](http://www.ncbi.nlm.nih.gov/geo/)
 public database as easy to work with plain text files. Matrices are aligned so that rows in
 the probes (GPL platform definition) matrix align with corresponding rows in the data matrix, and
