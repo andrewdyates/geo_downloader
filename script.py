@@ -15,6 +15,7 @@ import numpy as np
 
 from geo_api import *
 from quantile_normalize import *
+import lab_util
 from lab_util import tab_to_npy, masked_npy_to_tab
 
 OUT_FNAMES = {
@@ -33,6 +34,9 @@ def main(gse_id=None, outdir=None, platform_id=None):
   if outdir is None:
     outdir = os.getcwd()
     print "Warning: outdir not specified. Set outdir to current working directory %s." % (outdir)
+  if not os.path.exists(outdir):
+    print "Creating %s..." % (outdir)
+    lab_util.make_dir(outdir)
   if "CACHE_DIR" not in os.environ:
     print "Warning: os enviroment variable CACHE_DIR not set. Setting CACHE_DIR to `outdir` %s" % (outdir)
     os.environ["CACHE_DIR"] = outdir
