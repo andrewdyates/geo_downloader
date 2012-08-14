@@ -3,6 +3,7 @@
 
 EXAMPLE USE:
 python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
+python script.py gse_id=GSE7307 outdir=$HOME/Desktop
 
 raw
 normed
@@ -99,8 +100,9 @@ def main(gse_id=None, outdir=None, platform_id=None):
   # Write attribute values in sample order
   for attr_name in attrs:
     fp.write("%s\t" % attr_name)
-    fp.write('\t'.join(','.join(g.samples[s].attr[attr_name]) for s in g.col_titles[1:]))
-    fp.write('\n')
+    # Write each attribute value in column order
+    row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
+    fp.write('\t'.join(row)); fp.write('\n')
   fp.close()
   print "Wrote %d rows of %d columns (+%d headers, includes attr name column)" % \
       (len(attrs), len(g.col_titles)-1, len(global_attrs)+1)
