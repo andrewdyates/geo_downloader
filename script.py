@@ -26,6 +26,10 @@ OUT_FNAMES = {
 def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   """Save study information to disk."""
   assert gse_id is not None
+  gse_id = gse_id.upper()
+  if platform_id:
+    platform_id = platform_id.upper()
+  
 
   # Configure output destination, download cache, and download logging
   if outdir is None:
