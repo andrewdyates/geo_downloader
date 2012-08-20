@@ -50,5 +50,6 @@ _saved to `outdir`, full file name is generated using `gse_id` and `platform_id`
 | *.normed.tab  | data    | tab delimited text | Quantile normed 'raw.tab' in same text format. |
 | *.normed.npy  | data    | numpy.ma binary    | Quantile normed 'raw.tab' as binary; no row labels. |
 | *.probes.tab  | probes  | tab delimited text | Platform "GPL" probe definition per probe in data row order. |
+| *.gpl_fname.txt  | probes  | SOFT text | Complete GPL definition file as downloaded from the GEO website. |
 | *.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '#' prefixed headers at the top of the file. |
 

@@ -83,7 +83,7 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   
   # Save original and complete GPL file.
   fp = open(OUT_FNAMES['gpl_fname'], 'w')
-  for line in GPL.fp_download(g.platform.id):
+  for line in GPL.fp_download_full(g.platform.id):
     fp.write(line)
   fp.close()
   print "Wrote original GPL file from %s" % (g.platform.url)
