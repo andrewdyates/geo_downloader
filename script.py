@@ -20,6 +20,7 @@ OUT_FNAMES = {
   'normed_fname': "%s.normed.tab",
   'samples_fname': "%s.samples.tab",
   'probes_fname': "%s.probes.tab",
+  'gpl_fname': "%s.txt",
   'npy_normed_fname': "%s.normed.npy",
 }
 
@@ -29,7 +30,6 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   gse_id = gse_id.upper()
   if platform_id:
     platform_id = platform_id.upper()
-  
 
   # Configure output destination, download cache, and download logging
   if outdir is None:
@@ -41,16 +41,16 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   if "CACHE_DIR" not in os.environ:
     print "Warning: os enviroment variable CACHE_DIR not set. Setting CACHE_DIR to `outdir` %s" % (outdir)
     os.environ["CACHE_DIR"] = outdir
-  # Generate output file paths.
-  for k,v in OUT_FNAMES.items():
-    if platform_id is not None:
-      name = "%s_%s" % (gse_id, platform_id)
-    else:
-      name = "%s" % (gse_id)
-    OUT_FNAMES[k] = os.path.join(outdir, v%name)
 
   # Fetch study.
   g = GSE(gse_id, platform_id=platform_id)
+  if platform_id is not None:
+    assert g.platform.id == platform_id
+    
+  # Generate output file paths.
+  for k,v in OUT_FNAMES.items():
+    name = "%s_%s" % (gse_id, g.platform.id)
+    OUT_FNAMES[k] = os.path.join(outdir, v % name)
 
   # Populate g and save raw study data.
   row_ids = []
@@ -80,6 +80,13 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   fp.close()
   print "Wrote %d rows of %d columns (+1 header, includes ID column)" % \
       (len(row_ids), len(g.platform.col_titles))
+  
+  # Save original and complete GPL file.
+  fp = open(OUT_FNAMES['gpl_fname'], 'w')
+  for line in GPL.fp_download(g.platform.id):
+    fp.write(line)
+  fp.close()
+  print "Wrote original GPL file from %s" % (g.platform.url)
 
   # Save sample meta in study data column order.
   print "Saving sample meta in column order to %s." % (OUT_FNAMES['samples_fname'])
