@@ -30,7 +30,7 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   gse_id = gse_id.upper()
   if platform_id:
     platform_id = platform_id.upper()
-  if normalize.lower() in ('f', 'false', 'none'):
+  if type(normalize) == str and normalize.lower() in ('f', 'false', 'none'):
     normalize = False
 
   # Configure output destination, download cache, and download logging
