@@ -20,7 +20,7 @@ OUT_FNAMES = {
   'normed_fname': "%s.normed.tab",
   'samples_fname': "%s.samples.tab",
   'probes_fname': "%s.probes.tab",
-  'gpl_fname': "%s.txt",
+  'gpl_brief_fname': "%s.gpl_brief.txt",
   'npy_normed_fname': "%s.normed.npy",
 }
 
@@ -30,6 +30,8 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   gse_id = gse_id.upper()
   if platform_id:
     platform_id = platform_id.upper()
+  if normalize.lower() in ('f', 'false', 'none'):
+    normalize = False
 
   # Configure output destination, download cache, and download logging
   if outdir is None:
@@ -81,12 +83,12 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   print "Wrote %d rows of %d columns (+1 header, includes ID column)" % \
       (len(row_ids), len(g.platform.col_titles))
   
-  # Save original and complete GPL file.
-  fp = open(OUT_FNAMES['gpl_fname'], 'w')
-  for line in GPL.fp_download_full(g.platform.id):
+  # Save original GPL file header.
+  fp = open(OUT_FNAMES['gpl_brief_fname'], 'w')
+  for line in GPL.fp_download_brief(g.platform.id):
     fp.write(line)
   fp.close()
-  print "Wrote original GPL file from %s" % (g.platform.url)
+  print "Wrote original GPL brief file from %s" % (g.platform.brief_url)
 
   # Save sample meta in study data column order.
   print "Saving sample meta in column order to %s." % (OUT_FNAMES['samples_fname'])
@@ -123,27 +125,28 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   print "Wrote %d rows of %d columns (+%d headers, includes attr name column)" % \
       (len(attrs), len(g.col_titles)-1, len(global_attrs)+1)
 
-  # Quantile-normalize data
-  # load data
-  print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
-  M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
-  assert np.size(M,0) == len(varlist)
-
   if normalize:
+    # Load data into matrix.
+    print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
+    M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
+    assert np.size(M,0) == len(varlist)
+    # Quantile-normalize data.
     print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
     quantile_norm(M)
     assert np.size(M,0) == len(varlist)
     print "Saving quantile normalized matrix to file as %s." % (OUT_FNAMES['npy_normed_fname'])
     np.ma.dump(M, OUT_FNAMES['npy_normed_fname'])
+    print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
+    fp = open(OUT_FNAMES['normed_fname'], 'w')
+    fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
+    masked_npy_to_tab.npy_to_tab(M, fp, varlist)
+    print "Wrote %s successfully." % (OUT_FNAMES['normed_fname'])
   else:
     print "Normalization off. Do not normalize matrix or save it in binary format."
+    print "Do NOT write %s and %s." % (OUT_FNAMES['npy_normed_fname'], OUT_FNAMES['normed_fname'])
   
-  print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
-  fp = open(OUT_FNAMES['normed_fname'], 'w')
-  fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
-  masked_npy_to_tab.npy_to_tab(M, fp, varlist)
-  print "Wrote %s successfully." % (OUT_FNAMES['normed_fname'])
 
                  
 if __name__ == "__main__":
+  print sys.argv
   main(**dict([s.split('=') for s in sys.argv[1:]]))
