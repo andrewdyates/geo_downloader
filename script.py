@@ -1,6 +1,27 @@
 #!/usr/bin/python
 """Save study to disk as ordered and aligned tab delimited files.
 
+TODO:
+  check gse2034 function
+  check that normed matrix is in correct format
+
+ERROR
+-----
+Quantile Norming /Users/z/Desktop/GSE2034_GPL96.raw.tab as matrix...
+Traceback (most recent call last):
+  File "script.py", line 156, in <module>
+    main(**dict([s.split('=') for s in sys.argv[1:]]))
+  File "script.py", line 139, in main
+    quantile_norm(M)
+  File "/Users/z/Dropbox/biostat/git_repos/geo_downloader/quantile_normalize/__init__.py", line 45, in quantile_norm
+    v_full = f(frac_intervals(m))
+  File "/usr/local/Cellar/python/2.7.3/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/scipy/interpolate/interpolate.py", line 391, in __call__
+    out_of_bounds = self._check_bounds(x_new)
+  File "/usr/local/Cellar/python/2.7.3/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/scipy/interpolate/interpolate.py", line 449, in _check_bounds
+    raise ValueError("A value in x_new is above the interpolation "
+ValueError: A value in x_new is above the interpolation range.
+------------------------------  
+
 EXAMPLE USE:
   python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
   python script.py gse_id=GSE7307 outdir=$HOME/Desktop
@@ -129,6 +150,9 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
     # Load data into matrix.
     print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
     M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
+    print M.dtype
+    print "nans: ", np.count_nonzero(np.isnan(M))
+    print "max, min: ", M.max(), M.min()
     assert np.size(M,0) == len(varlist)
     # Quantile-normalize data.
     print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
