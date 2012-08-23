@@ -13,8 +13,9 @@ import cPickle as pickle
 
 from geo_api import *
 from quantile_normalize import *
-import lab_util
-from lab_util import tab_to_npy, masked_npy_to_tab
+from lab_util import *
+from lab_util.tab_to_npy import *
+from lab_util.masked_npy_to_tab import *
 
 OUT_FNAMES = {
   'raw_fname': "%s.raw.tab",
@@ -23,6 +24,7 @@ OUT_FNAMES = {
   'probes_fname': "%s.probes.tab",
   'gpl_brief_fname': "%s.gpl_brief.txt",
   'npy_normed_fname': "%s.normed.masked.pkl",
+  'varlist_fname': "%s.varlist.txt",
 }
 
 def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
@@ -40,7 +42,7 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
     print "Warning: outdir not specified. Set outdir to current working directory %s." % (outdir)
   if not os.path.exists(outdir):
     print "Creating %s..." % (outdir)
-    lab_util.make_dir(outdir)
+    make_dir(outdir)
   if "CACHE_DIR" not in os.environ:
     print "Warning: os enviroment variable CACHE_DIR not set. Setting CACHE_DIR to `outdir` %s" % (outdir)
     os.environ["CACHE_DIR"] = outdir
@@ -129,8 +131,10 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
   if normalize:
     # Load data into matrix.
     print "Loading %s as matrix..." % (OUT_FNAMES['raw_fname'])
-    M, varlist = tab_to_npy.tab_to_npy(OUT_FNAMES['raw_fname'])
-    print M.dtype
+    M, varlist = tab_to_npy(OUT_FNAMES['raw_fname'])
+    print "Matrix properties:"
+    print "data type: ", M.dtype
+    print "size (rows, columns): ", np.size(M,0), np.size(M,1)
     print "nans: ", np.count_nonzero(np.isnan(M))
     print "max, min: ", M.max(), M.min()
     assert np.size(M,0) == len(varlist)
@@ -141,10 +145,16 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
     print "Saving pickled quantile normalized matrix to file as %s." % (OUT_FNAMES['npy_normed_fname'])
     # Don't use np.ma.dump because it uses an inefficient ASCII protocol of pickling.
     pickle.dump(M, open(OUT_FNAMES['npy_normed_fname'], 'w'), protocol=2)
+    print "Saving row variable list (probe IDs) in row order, one per line to %s." % (OUT_FNAMES['varlist_fname'])
+    fp = open(OUT_FNAMES['varlist_fname'], 'w')
+    for s in varlist[:-1]:
+      fp.write("%s\n" % s)
+    fp.write(varlist[-1])
+    fp.close()
     print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
     fp = open(OUT_FNAMES['normed_fname'], 'w')
     fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
-    masked_npy_to_tab.npy_to_tab(M, fp, varlist)
+    masked_npy_to_tab(M, fp, varlist)
     print "Wrote %s successfully." % (OUT_FNAMES['normed_fname'])
   else:
     print "Normalization off. Do not normalize matrix or save it in binary format."
