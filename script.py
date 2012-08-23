@@ -1,27 +1,6 @@
 #!/usr/bin/python
 """Save study to disk as ordered and aligned tab delimited files.
 
-TODO:
-  check gse2034 function
-  check that normed matrix is in correct format
-
-ERROR
------
-Quantile Norming /Users/z/Desktop/GSE2034_GPL96.raw.tab as matrix...
-Traceback (most recent call last):
-  File "script.py", line 156, in <module>
-    main(**dict([s.split('=') for s in sys.argv[1:]]))
-  File "script.py", line 139, in main
-    quantile_norm(M)
-  File "/Users/z/Dropbox/biostat/git_repos/geo_downloader/quantile_normalize/__init__.py", line 45, in quantile_norm
-    v_full = f(frac_intervals(m))
-  File "/usr/local/Cellar/python/2.7.3/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/scipy/interpolate/interpolate.py", line 391, in __call__
-    out_of_bounds = self._check_bounds(x_new)
-  File "/usr/local/Cellar/python/2.7.3/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/scipy/interpolate/interpolate.py", line 449, in _check_bounds
-    raise ValueError("A value in x_new is above the interpolation "
-ValueError: A value in x_new is above the interpolation range.
-------------------------------  
-
 EXAMPLE USE:
   python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
   python script.py gse_id=GSE7307 outdir=$HOME/Desktop
@@ -30,6 +9,7 @@ See README.md for details.
 """
 import os
 import numpy as np
+import cPickle as pickle
 
 from geo_api import *
 from quantile_normalize import *
@@ -42,7 +22,7 @@ OUT_FNAMES = {
   'samples_fname': "%s.samples.tab",
   'probes_fname': "%s.probes.tab",
   'gpl_brief_fname': "%s.gpl_brief.txt",
-  'npy_normed_fname': "%s.normed.npy",
+  'npy_normed_fname': "%s.normed.masked.pkl",
 }
 
 def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
@@ -158,8 +138,9 @@ def main(gse_id=None, outdir=None, platform_id=None, normalize=True):
     print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
     quantile_norm(M)
     assert np.size(M,0) == len(varlist)
-    print "Saving quantile normalized matrix to file as %s." % (OUT_FNAMES['npy_normed_fname'])
-    np.ma.dump(M, OUT_FNAMES['npy_normed_fname'])
+    print "Saving pickled quantile normalized matrix to file as %s." % (OUT_FNAMES['npy_normed_fname'])
+    # Don't use np.ma.dump because it uses an inefficient ASCII protocol of pickling.
+    pickle.dump(M, open(OUT_FNAMES['npy_normed_fname'], 'w'), protocol=2)
     print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
     fp = open(OUT_FNAMES['normed_fname'], 'w')
     fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
