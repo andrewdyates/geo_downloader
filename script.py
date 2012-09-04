@@ -120,6 +120,7 @@ def main(gse_id=None, outdir=None, platform_id=None):
   print "Quantile Norming %s as matrix..." % (OUT_FNAMES['raw_fname'])
   quantile_norm(M)
   assert np.size(M,0) == len(varlist)
+  # TODO: save matrix as numpy
   
   print "Writing matrix as text to %s..." % (OUT_FNAMES['normed_fname'])
   fp = open(OUT_FNAMES['normed_fname'], 'w')
