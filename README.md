@@ -46,9 +46,10 @@ _saved to `outdir`, full file name is generated using `gse_id` and `platform_id`
 
 | File Suffix | Matrix  | Type               | Notes |
 | ----------- | ------  | ----               | ----- |
-| *.raw.tab     | data    | tab delimited text | Concatenated series matrix data without transformation. |
+| *.smdata.tab     | data    | tab delimited text | Concatenated series matrix data without transformation. |
 | *.probes.tab  | probes  | tab delimited text | Platform "GPL" probe definition per probe in data row order. |
+| *.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '#' prefixed headers at the top of the file. |
 | *.varlist.txt  | data  | text | List of probe (row variable) names in row order from top to bottom, one per line. |
 | *.gpl_brief.txt  | probes  | SOFT text | GPL metadata file "Brief" as downloaded from the GEO website; no row descriptions. |
-| *.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '#' prefixed headers at the top of the file. |
+
 
