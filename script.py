@@ -8,14 +8,9 @@ EXAMPLE USE:
 See README.md for details.
 """
 import os
-import numpy as np
-import cPickle as pickle
 
 from geo_api import *
-from quantile_normalize import *
 from lab_util import *
-from lab_util.tab_to_npy import *
-from lab_util.masked_npy_to_tab import *
 
 OUT_FNAMES = {
   'data_fname': "%s.smdata.tab",
