@@ -47,8 +47,6 @@ _saved to `outdir`, full file name is generated using `gse_id` and `platform_id`
 | File Suffix | Matrix  | Type               | Notes |
 | ----------- | ------  | ----               | ----- |
 | *.raw.tab     | data    | tab delimited text | Concatenated series matrix data without transformation. |
-| *.normed.tab  | data    | tab delimited text | Quantile normed 'raw.tab' in same text format. |
-| *.normed.masked.pkl  | data    | pickled numpy.ma binary    | Quantile normed 'raw.tab' as binary; no row labels. Load back into a numpy.MaskedArray (ma) object using cPickle.load |
 | *.probes.tab  | probes  | tab delimited text | Platform "GPL" probe definition per probe in data row order. |
 | *.varlist.txt  | data  | text | List of probe (row variable) names in row order from top to bottom, one per line. |
 | *.gpl_brief.txt  | probes  | SOFT text | GPL metadata file "Brief" as downloaded from the GEO website; no row descriptions. |
