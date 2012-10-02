@@ -7,3 +7,6 @@
 [submodule "lab_util"]
 	path = lab_util
 	url = git@github.com:andrewdyates/lab_util.git
+[submodule "matrix_io"]
+	path = matrix_io
+	url = git@github.com:andrewdyates/matrix_io.git
