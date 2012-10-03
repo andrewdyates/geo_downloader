@@ -2,6 +2,7 @@
 """Save study to disk as ordered and aligned tab delimited files.
 
 EXAMPLE USE:
+
   python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
   python script.py gse_id=GSE7307 outdir=$HOME/Desktop
 
@@ -12,11 +13,11 @@ from geo_api import *
 from lab_util import *
 
 OUT_FNAMES = {
-  'data_fname': "%s.smdata.tab",
-  'probes_fname': "%s.probes.tab",
-  'samples_fname': "%s.samples.tab",
-  'varlist_fname': "%s.varlist.txt",
-  'gpl_brief_fname': "%s.gpl_brief.txt",
+  'data': "%s.data.tab",
+  'probes': "%s.probes.tab",
+  'samples': "%s.samples.tab",
+  'varlist': "%s.varlist.txt",
+  'gpl_brief': "%s.gpl_brief.txt",
 }
 
 def download(gse_id=None, outdir=None, platform_id=None):
@@ -54,8 +55,8 @@ def download(gse_id=None, outdir=None, platform_id=None):
 
   # Save untransformed series matrix study data as text. Populate geo_api object g.
   row_ids = []
-  print "Saving combined series matrix study data to %s." % (out_fnames['data_fname'])
-  fp = open(out_fnames['data_fname'], 'w')
+  print "Saving combined series matrix study data to %s." % (out_fnames['data'])
+  fp = open(out_fnames['data'], 'w')
   fp.write('#'); fp.write('\t'.join(g.col_titles)); fp.write('\n');
   for row in g.get_rows():
     fp.write('\t'.join(row)); fp.write('\n');
@@ -65,9 +66,9 @@ def download(gse_id=None, outdir=None, platform_id=None):
       (len(row_ids), len(row))
 
   # Save GPL platform definitions in study data row order.
-  print "Saving probe row definitions in row order to %s." % (out_fnames['probes_fname'])
+  print "Saving probe row definitions in row order to %s." % (out_fnames['probes'])
   print g.platform.col_titles
-  fp = open(out_fnames['probes_fname'], 'w')
+  fp = open(out_fnames['probes'], 'w')
   fp.write('#ID_REF\t'); fp.write('\t'.join(g.platform.col_titles[1:])); fp.write('\n');
   for s in row_ids:
     d, row = g.platform.row_desc[s], [s]
@@ -82,14 +83,14 @@ def download(gse_id=None, outdir=None, platform_id=None):
       (len(row_ids), len(g.platform.col_titles))
   
   # Save original GPL file header.
-  fp = open(out_fnames['gpl_brief_fname'], 'w')
+  fp = open(out_fnames['gpl_brief'], 'w')
   for line in GPL.fp_download_brief(g.platform.id):
     fp.write(line)
   fp.close()
   print "Wrote original GPL brief file from %s" % (g.platform.brief_url)
 
   # Save sample meta in study data column order.
-  print "Saving sample meta in column order to %s." % (out_fnames['samples_fname'])
+  print "Saving sample meta in column order to %s." % (out_fnames['samples'])
 
   # Get all GSM attributes
   attrs = {}
@@ -107,7 +108,7 @@ def download(gse_id=None, outdir=None, platform_id=None):
     del attrs[k]
   print "Selected %d sample attributes and %d global attributes." % (len(attrs), len(global_attrs))
   
-  fp = open(out_fnames['samples_fname'], 'w')
+  fp = open(out_fnames['samples'], 'w')
   # Write global attributes as comment headers.
   for k, v in global_attrs.items():
     fp.write("##%s=%s\n" % (k, v))
