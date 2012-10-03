@@ -49,7 +49,7 @@ Name | File Suffix | Matrix  | Type               | Notes |
 ---- | ----------- | ------  | ----               | ----- |
 data | %s.data.tab     | data    | tab delimited text | Concatenated series matrix data without numerical transformations. First line begins with '#' and lists corresponding column sample GSM ids. First column is row attribute (probe) ID, all other columns are attribute values. Value and missing value formats depend on the source series matrix data as downloaded from the GEO FTP server. |
 probes | %s.probes.tab  | probes  | tab delimited text | Platform "GPL" probe definition per probe in data row order. |
-samples | %s.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '#' prefixed headers at the top of the file. First column is row attribute name, all other columns are attribute values. |
+samples | %s.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '##' prefixed headers at the top of the file. The line after any "##" headers starting with "GSM_ID" is the matrix header and lists each column's assoicated, unique GEO GSM IDs. First column is row attribute name, all other columns are attribute values. |
 varlist | %s.varlist.txt  | data  | text | List of probe (row variable) names in row order from top to bottom, one per line. |
 gpl_brief | %s.gpl_brief.txt  | probes  | SOFT text | GPL metadata file "Brief" as downloaded from the GEO website; no row descriptions. |
 

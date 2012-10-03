@@ -113,7 +113,7 @@ def download(gse_id=None, outdir=None, platform_id=None):
   for k, v in global_attrs.items():
     fp.write("##%s=%s\n" % (k, v))
   # Write data column titles as sample headers.
-  fp.write("#ATTRIBUTE_NAME\t"); fp.write("\t".join(g.col_titles[1:])); fp.write('\n')
+  fp.write("GSM_ID\t"); fp.write("\t".join(g.col_titles[1:])); fp.write('\n')
   # Write attribute values in sample order
   for attr_name in attrs:
     fp.write("%s\t" % attr_name)
