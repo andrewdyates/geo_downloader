@@ -52,5 +52,3 @@ probes | %s.probes.tab  | probes  | tab delimited text | Platform "GPL" probe de
 samples | %s.samples.tab | samples | tab delimited text | All sample "GSM" attributes with at least two unique values in data column order. Attributes with only one value are included as '##' prefixed headers at the top of the file. The line after any "##" headers starting with "GSM_ID" is the matrix header and lists each column's assoicated, unique GEO GSM IDs. First column is row attribute name, all other columns are attribute values. |
 varlist | %s.varlist.txt  | data  | text | List of probe (row variable) names in row order from top to bottom, one per line. |
 gpl_brief | %s.gpl_brief.txt  | probes  | SOFT text | GPL metadata file "Brief" as downloaded from the GEO website; no row descriptions. |
-
-
