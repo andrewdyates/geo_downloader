@@ -20,7 +20,7 @@ OUT_FNAMES = {
   'gpl_brief': "%s.gpl_brief.txt",
 }
 
-def download(gse_id=None, outdir=None, platform_id=None):
+def download(gse_id=None, platform_id=None, outdir=None):
   """Save study information to disk.
 
   Returns:
