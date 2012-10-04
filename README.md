@@ -14,7 +14,6 @@ Script Parameters
 * platform_id: str of GEO GPL Platform Accession ID;
     required only when multiple platforms are associated with the same study
 * outdir: str of path to output directory. Defaults to current working directory.
-* normalize: [default=True] bool if to perform quantile normalization on data matrix. Disabling normalize also prevents parsing and loading the text matrix as a numpy object. Thus, `*.normed.tab`, `*.normed.masked.pkl`, and `*.varlist.txt` will also not be saved. Set `normalize=False` to conserve memory and processor time in a constrained environment like a web server.
 
 About
 -----------
