@@ -69,7 +69,7 @@ def download(gse_id=None, platform_id=None, outdir=None):
   print "Saving probe row definitions in row order to %s." % (out_fnames['probes'])
   print g.platform.col_titles
   fp = open(out_fnames['probes'], 'w')
-  fp.write('#ID_REF\t'); fp.write('\t'.join(g.platform.col_titles[1:])); fp.write('\n');
+  fp.write('ID_REF\t'); fp.write('\t'.join(g.platform.col_titles[1:])); fp.write('\n');
   for s in row_ids:
     d, row = g.platform.row_desc[s], [s]
     for k in g.platform.col_titles[1:]:
