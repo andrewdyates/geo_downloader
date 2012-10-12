@@ -15,7 +15,7 @@ import numpy as np
 import itertools
 
 OUT_FNAMES = {
-  'data': "%s.data.tab",
+  'data': "%s.seriesmatrix.tab",
   'probes': "%s.probes.tab",
   'samples': "%s.samples.tab",
   'varlist': "%s.varlist.txt",
