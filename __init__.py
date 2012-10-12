@@ -11,6 +11,8 @@ See README.md for details.
 import os
 from geo_api import *
 from lab_util import *
+import numpy as np
+import itertools
 
 OUT_FNAMES = {
   'data': "%s.data.tab",
@@ -107,6 +109,76 @@ def download(gse_id=None, platform_id=None, outdir=None):
   for k in global_attrs:
     del attrs[k]
   print "Selected %d sample attributes and %d global attributes." % (len(attrs), len(global_attrs))
+
+  key_list = list(attrs.keys())
+  new_names = remove_prefixes(key_list)
+  attr_name_map = dict(zip(key_list, new_names))
+  print "Attribute name map after removing prefixes:", \
+      ",".join(["%s=>%s"%(k,v) for k,v in attr_name_map.items()])
+
+  # Attempt to merge attributes that seem to be split across multiple attributes.
+  # collect attributes that have at least 5 missing values
+  attr_masks = {}
+  for attr_name in attrs:
+    mask = [not bool(g.samples[s].attr.get(attr_name, False)) for s in g.col_titles[1:]]
+    if np.sum(mask) >= 5:
+      attr_masks[attr_name] = np.array(mask, dtype=np.bool)
+
+  # merge pairs of attributes with disjoint masks and that have a name-corrected prefix of three characters
+  if len(attr_masks) >= 2:
+  # get equiv classes of prefixes
+    prefixes = {}
+    for k, mask in attr_masks.items():
+      if len(k) < 3: continue
+      pfx = attr_name_map[k][:3]
+      prefixes.setdefault(pfx, set()).add(k)
+      
+    # for each equiv class, merge disjoint sets until no merge happens
+    mask_sets = [] # list of sets of attr keys
+    for pfx, keys in prefixes.items():
+      mask_set = set()
+      while True:
+        if len(keys) == 1:
+          break
+        for k1, k2 in itertools.combinations(keys,2):
+          # are masks disjoint?
+          mask_1 = attr_masks[k1]
+          mask_2 = attr_masks[k2]
+          mask_u = mask_1&mask_2
+          # match; masks are exactly disjoint. Merge masks, remove k2 from key set, repeat.
+          if np.sum(~mask_1) + np.sum(~mask_2) == np.sum(~mask_u):
+            attr_masks[k1] = mask_u
+            mask_set.add(k1)
+            mask_set.add(k2)
+            keys.remove(k2)
+            break
+      if mask_set:
+        mask_sets.append(mask_set)
+  # report merge mask findings
+  print "Mask merge results:"
+  ignore_set = set()
+  replacement_map = {}
+  
+  for keys in mask_sets:
+    k = keys.pop()
+    mask = attr_masks[k]
+    keys.add(k)
+    print "missing value mask size: %d, attributes: %s" % (np.sum(mask), ", ".join(list(keys)))
+    # for longest string in mask set, set to merged values, delete other members from attr list
+    best_key = sorted(keys, cmp=lambda q,r: len(q)<len(r), reverse=True)[0]
+    keys.remove(best_key)
+    ignore_set.update(keys)
+    keys.add(best_key)
+    print "best key for this set: %s. added %d other key(s) to ignore_set" % (best_key, len(keys)-1)
+    # merge values
+    merged_values = ['']*(len(g.col_titles)-1)
+    for attr_name in keys:
+      row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
+      for i, v in enumerate(row):
+        if v:
+          merged_values[i] = v
+    # update values for best key
+    replacement_map[best_key] = merged_values
   
   fp = open(out_fnames['samples'], 'w')
   # Write global attributes as comment headers.
@@ -115,13 +187,75 @@ def download(gse_id=None, platform_id=None, outdir=None):
   # Write data column titles as sample headers.
   fp.write("GSM_ID\t"); fp.write("\t".join(g.col_titles[1:])); fp.write('\n')
   # Write attribute values in sample order
+  n_wrote, n_replaced, n_ignored = 0, 0, 0
   for attr_name in attrs:
-    fp.write("%s\t" % attr_name)
+    if attr_name in ignore_set:
+      n_ignored += 1
+      continue
+    # get merged values
+    if attr_name in replacement_map:
+      n_replaced += 1
+      row = replacement_map[attr_name]
+    else:
+      row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
+    # write prefix-truncated name
+    fp.write("%s\t" % attr_name_map[attr_name])
     # Write each attribute value in column order
-    row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
     fp.write('\t'.join(row)); fp.write('\n')
+    n_wrote +=1 
   fp.close()
-  print "Wrote %d rows of %d columns (+%d headers, includes attr name column)" % \
-      (len(attrs), len(g.col_titles)-1, len(global_attrs)+1)
+  print "Wrote %d rows of %d columns, ignored %d, replaced %d (+%d headers, includes attr name column)" % \
+      (n_wrote, n_ignored, n_replaced, len(g.col_titles)-1, len(global_attrs)+1)
   
   return out_fnames
+
+
+def remove_prefixes(names):
+  # From remaining multi-value attributes, remove any prefixes from attr names that are:
+  #   over five characters long
+  #   are shared by at least 30% and more than 2 attribute names
+  #   if removed, all attribute names are still unique
+  names = np.array(names)
+  min_n = int(len(names)*.3)+1
+  N = 5
+  while True:
+    prefixes = {}
+    for i, name in enumerate(names):
+      if len(name) > N:
+        pfx = name[:N]
+        prefixes.setdefault(pfx, set()).add(i)
+    # continue if any prefix has enough names
+    promising_pfxs = [k for k, v in prefixes.items() if len(v) > min_n and len(v) > 2]
+    # if no promising prefixes, break
+    if not promising_pfxs:
+      break
+    
+    for pfx in promising_pfxs:
+      # expand prefixes
+      idxs = list(prefixes[pfx])
+      name_select = names[idxs]
+      expand = 0
+      while True:
+        # all names must have remaining characters
+        if any([True for s in name_select if len(s) <= N+expand+1]):
+          break
+        if not len(set([s[:N+expand+1] for s in name_select])) == 1:
+          break
+        expand += 1
+      full_pfx = name_select[0][:N+expand]
+      print "Found prefix '%s' for %d words." % (full_pfx, len(name_select))
+      name_stems = [s[N+expand:] for s in name_select]
+      name_stem_set = set(name_stems)
+      # does removing this prefix result in a duplicate name?
+      if len(name_select) != len(name_stem_set):
+        print "Stems are not all unique. Skipping..."
+        continue
+      # are any stems in the set of remaining names?
+      if set(names) & name_stem_set:
+        print "Stems found in complete name list. Skipping..."
+      # Ok, remove prefixes from names.
+      names[idxs] = name_stems
+      
+  return names
+
+
