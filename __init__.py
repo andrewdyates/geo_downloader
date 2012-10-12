@@ -94,6 +94,11 @@ def download(gse_id=None, platform_id=None, outdir=None):
   # Save sample meta in study data column order.
   print "Saving sample meta in column order to %s." % (out_fnames['samples'])
 
+
+  # ==============================
+  # GSM ATTRIBUTE HANDLING
+  # ==============================
+
   # Get all GSM attributes
   attrs = {}
   for s, gsm in g.samples.items():
@@ -179,6 +184,10 @@ def download(gse_id=None, platform_id=None, outdir=None):
           merged_values[i] = v
     # update values for best key
     replacement_map[best_key] = merged_values
+
+  # ------------------------------
+  # Write *.samples.tab
+  # ------------------------------
   
   fp = open(out_fnames['samples'], 'w')
   # Write global attributes as comment headers.
@@ -204,8 +213,8 @@ def download(gse_id=None, platform_id=None, outdir=None):
     fp.write('\t'.join(row)); fp.write('\n')
     n_wrote +=1 
   fp.close()
-  print "Wrote %d rows of %d columns, ignored %d, replaced %d (+%d headers, includes attr name column)" % \
-      (n_wrote, n_ignored, n_replaced, len(g.col_titles)-1, len(global_attrs)+1)
+  print "Wrote %d rows of %d columns, ignored %d rows, replaced %d rows (+%d headers, +1 attr name first column)" % \
+      (n_wrote, len(g.col_titles)-1, n_ignored, n_replaced, len(global_attrs)+1)
   
   return out_fnames
 
@@ -236,10 +245,15 @@ def remove_prefixes(names):
       name_select = names[idxs]
       expand = 0
       while True:
-        # all names must have remaining characters
+        # All names must have remaining characters
         if any([True for s in name_select if len(s) <= N+expand+1]):
           break
-        if not len(set([s[:N+expand+1] for s in name_select])) == 1:
+        # All last characters should match. If not, break. Else, expand and loop.
+        c=name_select[0][N+expand]
+        for s in name_select[1:]:
+          if s[N+expand]!=c:
+            break
+        if s[N+expand]!=c:
           break
         expand += 1
       full_pfx = name_select[0][:N+expand]
