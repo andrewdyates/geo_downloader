@@ -130,6 +130,7 @@ def download(gse_id=None, platform_id=None, outdir=None):
       attr_masks[attr_name] = np.array(mask, dtype=np.bool)
 
   # merge pairs of attributes with disjoint masks and that have a name-corrected prefix of three characters
+  mask_sets = [] # list of sets of attr keys
   if len(attr_masks) >= 2:
   # get equiv classes of prefixes
     prefixes = {}
@@ -139,7 +140,6 @@ def download(gse_id=None, platform_id=None, outdir=None):
       prefixes.setdefault(pfx, set()).add(k)
       
     # for each equiv class, merge disjoint sets until no merge happens
-    mask_sets = [] # list of sets of attr keys
     for pfx, keys in prefixes.items():
       mask_set = set()
       while True:
