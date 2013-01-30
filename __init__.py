@@ -9,6 +9,7 @@ EXAMPLE USE:
 See README.md for details.
 """
 import os
+import re
 from geo_api import *
 from lab_util import *
 import numpy as np
@@ -119,6 +120,7 @@ def download(gse_id=None, platform_id=None, outdir=None, preserve_gsm_attrs=Fals
   if not preserve_gsm_attrs:
     key_list = list(attrs.keys())
     new_names = remove_prefixes(key_list)
+    new_names = remove_suffixes(new_names)
     attr_name_map = dict(zip(key_list, new_names))
     print "Attribute name map after removing prefixes:", \
       ",".join(["%s=>%s"%(k,v) for k,v in attr_name_map.items()])
@@ -282,4 +284,7 @@ def remove_prefixes(names):
       
   return names
 
-
+RX_SUFFIX = re.compile("_ch1$")
+def remove_suffixes(names):
+  q = [RX_SUFFIX.sub("", s) for s in names]
+  return q
