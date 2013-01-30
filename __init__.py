@@ -119,8 +119,8 @@ def download(gse_id=None, platform_id=None, outdir=None, preserve_gsm_attrs=Fals
   ignore_set = set(); replacement_map = {}
   if not preserve_gsm_attrs:
     key_list = list(attrs.keys())
-    new_names = remove_prefixes(key_list)
-    new_names = remove_suffixes(new_names)
+    new_names = remove_suffixes(key_list)
+    new_names = remove_prefixes(new_names)
     attr_name_map = dict(zip(key_list, new_names))
     print "Attribute name map after removing prefixes:", \
       ",".join(["%s=>%s"%(k,v) for k,v in attr_name_map.items()])
@@ -250,7 +250,7 @@ def remove_prefixes(names):
     # if no promising prefixes, break
     if not promising_pfxs:
       break
-    
+
     for pfx in promising_pfxs:
       # expand prefixes
       idxs = list(prefixes[pfx])
