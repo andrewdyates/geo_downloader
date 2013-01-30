@@ -22,7 +22,7 @@ OUT_FNAMES = {
   'gpl_brief': "%s.gpl_brief.txt",
 }
 
-def download(gse_id=None, platform_id=None, outdir=None):
+def download(gse_id=None, platform_id=None, outdir=None, preserve_gsm_attrs=False):
   """Save study information to disk.
 
   Returns:
@@ -114,81 +114,83 @@ def download(gse_id=None, platform_id=None, outdir=None):
   for k in global_attrs:
     del attrs[k]
   print "Selected %d sample attributes and %d global attributes." % (len(attrs), len(global_attrs))
-
-  key_list = list(attrs.keys())
-  new_names = remove_prefixes(key_list)
-  attr_name_map = dict(zip(key_list, new_names))
-  print "Attribute name map after removing prefixes:", \
+  
+  ignore_set = set(); replacement_map = {}
+  if not preserve_gsm_attrs:
+    key_list = list(attrs.keys())
+    new_names = remove_prefixes(key_list)
+    attr_name_map = dict(zip(key_list, new_names))
+    print "Attribute name map after removing prefixes:", \
       ",".join(["%s=>%s"%(k,v) for k,v in attr_name_map.items()])
 
-  # Attempt to merge attributes that seem to be split across multiple attributes.
-  # collect attributes that have at least 5 missing values
-  attr_masks = {}
-  for attr_name in attrs:
-    mask = [not bool(g.samples[s].attr.get(attr_name, False)) for s in g.col_titles[1:]]
-    if np.sum(mask) >= 5:
-      attr_masks[attr_name] = np.array(mask, dtype=np.bool)
-
-  # merge pairs of attributes with disjoint masks and that have a name-corrected prefix of three characters
-  mask_sets = [] # list of sets of attr keys
-  if len(attr_masks) >= 2:
-  # get equiv classes of prefixes
-    prefixes = {}
-    for k, mask in attr_masks.items():
-      if len(k) < 3: continue
-      pfx = attr_name_map[k][:3]
-      prefixes.setdefault(pfx, set()).add(k)
-      
-    # for each equiv class, merge disjoint sets until no merge happens
-    for pfx, keys in prefixes.items():
-      mask_set = set()
-      while True:
-        if len(keys) == 1:
-          break
-        merges = False
-        for k1, k2 in itertools.combinations(keys,2):
-          # are masks disjoint?
-          mask_1 = attr_masks[k1]
-          mask_2 = attr_masks[k2]
-          mask_u = mask_1&mask_2
-          # match; masks are exactly disjoint. Merge masks, remove k2 from key set, repeat.
-          if np.sum(~mask_1) + np.sum(~mask_2) == np.sum(~mask_u):
-            attr_masks[k1] = mask_u
-            mask_set.add(k1)
-            mask_set.add(k2)
-            keys.remove(k2)
-            merges = True
+    # Attempt to merge attributes that seem to be split across multiple attributes.
+    # collect attributes that have at least 5 missing values
+    attr_masks = {}
+    for attr_name in attrs:
+      mask = [not bool(g.samples[s].attr.get(attr_name, False)) for s in g.col_titles[1:]]
+      if np.sum(mask) >= 5:
+        attr_masks[attr_name] = np.array(mask, dtype=np.bool)
+        
+    # merge pairs of attributes with disjoint masks and that have a name-corrected prefix of three characters
+    mask_sets = [] # list of sets of attr keys
+    if len(attr_masks) >= 2:
+    # get equiv classes of prefixes
+      prefixes = {}
+      for k, mask in attr_masks.items():
+        if len(k) < 3: continue
+        pfx = attr_name_map[k][:3]
+        prefixes.setdefault(pfx, set()).add(k)
+        
+      # for each equiv class, merge disjoint sets until no merge happens
+      for pfx, keys in prefixes.items():
+        mask_set = set()
+        while True:
+          if len(keys) == 1:
             break
-        if not merges:
-          print "Cannot merge keys:", keys
-          break
-      if mask_set:
-        mask_sets.append(mask_set)
-  # report merge mask findings
-  print "Mask merge results:"
-  ignore_set = set()
-  replacement_map = {}
-  
-  for keys in mask_sets:
-    k = keys.pop()
-    mask = attr_masks[k]
-    keys.add(k)
-    print "missing value mask size: %d, attributes: %s" % (np.sum(mask), ", ".join(list(keys)))
-    # for longest string in mask set, set to merged values, delete other members from attr list
-    best_key = sorted(keys, cmp=lambda q,r: len(q)<len(r), reverse=True)[0]
-    keys.remove(best_key)
-    ignore_set.update(keys)
-    keys.add(best_key)
-    print "best key for this set: %s. added %d other key(s) to ignore_set" % (best_key, len(keys)-1)
-    # merge values
-    merged_values = ['']*(len(g.col_titles)-1)
-    for attr_name in keys:
-      row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
-      for i, v in enumerate(row):
-        if v:
-          merged_values[i] = v
-    # update values for best key
-    replacement_map[best_key] = merged_values
+          merges = False
+          for k1, k2 in itertools.combinations(keys,2):
+            # are masks disjoint?
+            mask_1 = attr_masks[k1]
+            mask_2 = attr_masks[k2]
+            mask_u = mask_1&mask_2
+            # match; masks are exactly disjoint. Merge masks, remove k2 from key set, repeat.
+            if np.sum(~mask_1) + np.sum(~mask_2) == np.sum(~mask_u):
+              attr_masks[k1] = mask_u
+              mask_set.add(k1)
+              mask_set.add(k2)
+              keys.remove(k2)
+              merges = True
+              break
+          if not merges:
+            print "Cannot merge keys:", keys
+            break
+        if mask_set:
+          mask_sets.append(mask_set)
+    # report merge mask findings
+    print "Mask merge results:"
+    ignore_set = set()
+    replacement_map = {}
+    
+    for keys in mask_sets:
+      k = keys.pop()
+      mask = attr_masks[k]
+      keys.add(k)
+      print "missing value mask size: %d, attributes: %s" % (np.sum(mask), ", ".join(list(keys)))
+      # for longest string in mask set, set to merged values, delete other members from attr list
+      best_key = sorted(keys, cmp=lambda q,r: len(q)<len(r), reverse=True)[0]
+      keys.remove(best_key)
+      ignore_set.update(keys)
+      keys.add(best_key)
+      print "best key for this set: %s. added %d other key(s) to ignore_set" % (best_key, len(keys)-1)
+      # merge values
+      merged_values = ['']*(len(g.col_titles)-1)
+      for attr_name in keys:
+        row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
+        for i, v in enumerate(row):
+          if v:
+            merged_values[i] = v
+      # update values for best key
+      replacement_map[best_key] = merged_values
 
   # ------------------------------
   # Write *.samples.tab
@@ -213,7 +215,10 @@ def download(gse_id=None, platform_id=None, outdir=None):
     else:
       row = [",".join(g.samples[s].attr.get(attr_name, [])) for s in g.col_titles[1:]]
     # write prefix-truncated name
-    fp.write("%s\t" % attr_name_map[attr_name])
+    if preserve_gsm_attrs:
+      fp.write("%s\t" % attr_name)
+    else:
+      fp.write("%s\t" % attr_name_map[attr_name])
     # Write each attribute value in column order
     fp.write('\t'.join(row)); fp.write('\n')
     n_wrote +=1 

@@ -2,6 +2,9 @@
 """Shell script wrapper for `__init__.download()`.
 EXAMPLE USE:
   python script.py gse_id=GSE15745 platform_id=GPL6104 outdir=$HOME/Desktop
+
+OPTIONS
+  preserve_gsm_attrs: bool
 """
 from __init__ import *
 
