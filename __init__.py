@@ -145,6 +145,7 @@ def download(gse_id=None, platform_id=None, outdir=None):
       while True:
         if len(keys) == 1:
           break
+        merges = False
         for k1, k2 in itertools.combinations(keys,2):
           # are masks disjoint?
           mask_1 = attr_masks[k1]
@@ -156,7 +157,11 @@ def download(gse_id=None, platform_id=None, outdir=None):
             mask_set.add(k1)
             mask_set.add(k2)
             keys.remove(k2)
+            merges = True
             break
+        if not merges:
+          print "Cannot merge keys:", keys
+          break
       if mask_set:
         mask_sets.append(mask_set)
   # report merge mask findings
@@ -218,14 +223,13 @@ def download(gse_id=None, platform_id=None, outdir=None):
   
   return out_fnames
 
-
 def remove_prefixes(names):
   # From remaining multi-value attributes, remove any prefixes from attr names that are:
   #   over five characters long
-  #   are shared by at least 30% and more than 2 attribute names
+  #   are shared by at least 3 and more than 2 attribute names
   #   if removed, all attribute names are still unique
   names = np.array(names)
-  min_n = int(len(names)*.3)+1
+  min_n = 3
   N = 5
   while True:
     prefixes = {}
@@ -234,7 +238,8 @@ def remove_prefixes(names):
         pfx = name[:N]
         prefixes.setdefault(pfx, set()).add(i)
     # continue if any prefix has enough names
-    promising_pfxs = [k for k, v in prefixes.items() if len(v) > min_n and len(v) > 2]
+    promising_pfxs = [k for k, v in prefixes.items() if len(v) >= min_n and len(v) > 2]
+    
     # if no promising prefixes, break
     if not promising_pfxs:
       break
