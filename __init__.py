@@ -50,8 +50,12 @@ def download(gse_id=None, platform_id=None, outdir=None, preserve_gsm_attrs=Fals
   g = GSE(gse_id, platform_id=platform_id)
   if platform_id is not None:
     assert g.platform.id == platform_id
+  else:
+    if g.type == "SUPER":
+      raise Exception, "%s is super study, and no platform has been specified using the `platform_id` parameter. Specify either platform or substudy to download." % gse_id
     
   # Generate output file paths.
+  #print "!!!", g.platform, g.type
   for k,v in out_fnames.items():
     name = "%s_%s" % (gse_id, g.platform.id)
     out_fnames[k] = os.path.join(outdir, v % name)
